@@ -31,9 +31,10 @@ void main() async {
 
     expect(eventTeams.length, greaterThan(0));
   });
+
   test('Get team events from year', () async {
     List<Event> events = await api.getTeamEventsFromYear("frc9738", 2024);
-    print(events.map((event) => event.name));
+
     expect(events.length, greaterThan(0));
   });
 }
