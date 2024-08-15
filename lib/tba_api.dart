@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:tba_api/award.dart';
 import 'package:tba_api/event.dart';
+import 'package:tba_api/match_data.dart';
 import 'package:tba_api/tba_status.dart';
 import 'package:tba_api/team.dart';
+import 'package:tba_api/team_year_status.dart';
 
 /// A class to interact with The Blue Alliance (TBA) API.
 ///
@@ -171,6 +174,65 @@ class TBAApi {
     } else {
       throw FormatException(
           'Expected a list of events, but got ${jsonResponse.runtimeType}');
+    }
+  }
+
+  Future<List<MatchData>> getTeamMatchesFromEvent(
+      String teamKey, String eventKey) async {
+    final jsonResponse =
+        await _getFromURI("team/$teamKey/event/$eventKey/matches");
+
+    if (jsonResponse is List<dynamic>) {
+      List<MatchData> matches = [];
+      for (var eventJson in jsonResponse) {
+        if (eventJson is Map<String, dynamic>) {
+          try {
+            matches.add(MatchData.fromJson(eventJson));
+          } catch (e) {
+            print('Error parsing eventJson: $eventJson');
+            print('Exception: $e');
+          }
+        } else {
+          print('Unexpected format for event data: $eventJson');
+        }
+      }
+      return matches;
+    } else {
+      throw FormatException(
+          'Expected a list of events, but got ${jsonResponse.runtimeType}');
+    }
+  }
+
+  Future<TeamYearStatus> getTeamYearStatus(String teamKey, int year) async {
+    final jsonResponse =
+        await _getFromURI("team/$teamKey/events/$year/statuses");
+
+    return TeamYearStatus.fromJson(jsonResponse);
+  }
+
+  Future<List<Award>> getTeamEventAwards(
+      String teamKey, String eventKey) async {
+    final jsonResponse =
+        await _getFromURI("team/$teamKey/event/$eventKey/awards");
+
+    if (jsonResponse is List<dynamic>) {
+      List<Award> awards = [];
+      for (var awardJson in jsonResponse) {
+        if (awardJson is Map<String, dynamic>) {
+          try {
+            awards.add(Award.fromJson(awardJson));
+          } catch (e) {
+            print('Error parsing awardJson: $awardJson');
+            print('Exception: $e');
+          }
+        } else {
+          print('Unexpected format for award data: $awardJson');
+        }
+      }
+      return awards;
+    } else {
+      throw FormatException(
+          'Expected a list of awards, but got ${jsonResponse.runtimeType}');
     }
   }
 }
