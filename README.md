@@ -1,2 +1,2 @@
-A sample command-line application with an entrypoint in `bin/`, library code
-in `lib/`, and example unit test in `test/`.
+# TBA Flutter API
+> A Flutter API for interaction with the blue alliance v3 read api
