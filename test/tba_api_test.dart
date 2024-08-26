@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:tba_api/award.dart';
 import 'package:tba_api/event.dart';
 import 'package:tba_api/match_data.dart';
+import 'package:tba_api/robot.dart';
 import 'package:tba_api/tba_api.dart';
 import 'package:tba_api/tba_status.dart';
 import 'package:tba_api/team.dart';
@@ -59,5 +60,17 @@ void main() async {
     List<Award> awards = await api.getTeamEventAwards("frc9738", "2024isde1");
 
     expect(awards.length, greaterThan(0));
+  });
+
+  test('Get team robots', () async {
+    Robot robot = (await api.getTeamRobots("frc1690")).first;
+
+    expect(robot.robotName, "rafiki");
+  });
+
+  test('Get team robot image', () async {
+    String imageURL = await api.getTeamRobotImage("frc9738", 2024);
+
+    expect(Uri.parse(imageURL).isAbsolute, isTrue);
   });
 }

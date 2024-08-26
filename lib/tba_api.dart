@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:tba_api/award.dart';
 import 'package:tba_api/event.dart';
 import 'package:tba_api/match_data.dart';
+import 'package:tba_api/media_item.dart';
+import 'package:tba_api/robot.dart';
 import 'package:tba_api/tba_status.dart';
 import 'package:tba_api/team.dart';
 import 'package:tba_api/team_year_status.dart';
@@ -30,6 +32,37 @@ class TBAApi {
   Future<Team> getTeam(String teamKey) async {
     final jsonResponse = await _getFromURI("team/$teamKey");
     return Team.fromJson(jsonResponse);
+  }
+
+  Future<List<Robot>> getTeamRobots(String teamKey) async {
+    final jsonResponse = await _getFromURI("team/$teamKey/robots");
+
+    if (jsonResponse is List<dynamic>) {
+      return getListWithJson(jsonResponse, Robot.fromJson);
+    } else {
+      throw FormatException(
+          'Expected a list of events, but got ${jsonResponse.runtimeType}');
+    }
+  }
+
+  Future<List<MediaItem>> getTeamMediaFromYear(String teamKey, int year) async {
+    final jsonResponse = await _getFromURI("team/$teamKey/media/$year");
+
+    if (jsonResponse is List<dynamic>) {
+      return getListWithJson(jsonResponse, MediaItem.fromJson);
+    } else {
+      throw FormatException(
+          'Expected a list of media items, but got ${jsonResponse.runtimeType}');
+    }
+  }
+
+  Future<String> getTeamRobotImage(String teamKey, int year) async {
+    final jsonResponse = await _getFromURI("team/$teamKey/media/$year");
+    if (jsonResponse is List<dynamic>) {
+      return (jsonResponse
+          .firstWhere((media) => media["preferred"] == true)["view_url"]);
+    }
+    return ("");
   }
 
   /// Fetches data from the specified URI path.
@@ -73,20 +106,7 @@ class TBAApi {
     final jsonResponse = await _getFromURI("events/$year");
 
     if (jsonResponse is List<dynamic>) {
-      List<Event> events = [];
-      for (var eventJson in jsonResponse) {
-        if (eventJson is Map<String, dynamic>) {
-          try {
-            events.add(Event.fromJson(eventJson));
-          } catch (e) {
-            print('Error parsing eventJson: $eventJson');
-            print('Exception: $e');
-          }
-        } else {
-          print('Unexpected format for event data: $eventJson');
-        }
-      }
-      return events;
+      return getListWithJson(jsonResponse, Event.fromJson);
     } else {
       throw FormatException(
           'Expected a list of events, but got ${jsonResponse.runtimeType}');
@@ -133,20 +153,7 @@ class TBAApi {
     final jsonResponse = await _getFromURI("event/$eventKey/teams");
 
     if (jsonResponse is List<dynamic>) {
-      List<Team> teams = [];
-      for (var eventJson in jsonResponse) {
-        if (eventJson is Map<String, dynamic>) {
-          try {
-            teams.add(Team.fromJson(eventJson));
-          } catch (e) {
-            print('Error parsing eventJson: $eventJson');
-            print('Exception: $e');
-          }
-        } else {
-          print('Unexpected format for event data: $eventJson');
-        }
-      }
-      return teams;
+      return getListWithJson(jsonResponse, Team.fromJson);
     } else {
       throw FormatException(
           'Expected a list of teams, but got ${jsonResponse.runtimeType}');
@@ -157,20 +164,7 @@ class TBAApi {
     final jsonResponse = await _getFromURI("team/$teamKey/events/$year");
 
     if (jsonResponse is List<dynamic>) {
-      List<Event> events = [];
-      for (var eventJson in jsonResponse) {
-        if (eventJson is Map<String, dynamic>) {
-          try {
-            events.add(Event.fromJson(eventJson));
-          } catch (e) {
-            print('Error parsing eventJson: $eventJson');
-            print('Exception: $e');
-          }
-        } else {
-          print('Unexpected format for event data: $eventJson');
-        }
-      }
-      return events;
+      return getListWithJson(jsonResponse, Event.fromJson);
     } else {
       throw FormatException(
           'Expected a list of events, but got ${jsonResponse.runtimeType}');
@@ -183,20 +177,7 @@ class TBAApi {
         await _getFromURI("team/$teamKey/event/$eventKey/matches");
 
     if (jsonResponse is List<dynamic>) {
-      List<MatchData> matches = [];
-      for (var eventJson in jsonResponse) {
-        if (eventJson is Map<String, dynamic>) {
-          try {
-            matches.add(MatchData.fromJson(eventJson));
-          } catch (e) {
-            print('Error parsing eventJson: $eventJson');
-            print('Exception: $e');
-          }
-        } else {
-          print('Unexpected format for event data: $eventJson');
-        }
-      }
-      return matches;
+      return getListWithJson(jsonResponse, MatchData.fromJson);
     } else {
       throw FormatException(
           'Expected a list of events, but got ${jsonResponse.runtimeType}');
@@ -216,23 +197,28 @@ class TBAApi {
         await _getFromURI("team/$teamKey/event/$eventKey/awards");
 
     if (jsonResponse is List<dynamic>) {
-      List<Award> awards = [];
-      for (var awardJson in jsonResponse) {
-        if (awardJson is Map<String, dynamic>) {
-          try {
-            awards.add(Award.fromJson(awardJson));
-          } catch (e) {
-            print('Error parsing awardJson: $awardJson');
-            print('Exception: $e');
-          }
-        } else {
-          print('Unexpected format for award data: $awardJson');
-        }
-      }
-      return awards;
+      return getListWithJson(jsonResponse, Award.fromJson);
     } else {
       throw FormatException(
           'Expected a list of awards, but got ${jsonResponse.runtimeType}');
     }
+  }
+
+  List<T> getListWithJson<T>(
+      List<dynamic> list, T Function(Map<String, dynamic>) fromJson) {
+    List<T> items = [];
+    for (var awardJson in list) {
+      if (awardJson is Map<String, dynamic>) {
+        try {
+          items.add(fromJson(awardJson));
+        } catch (e) {
+          print('Error parsing awardJson: $awardJson');
+          print('Exception: $e');
+        }
+      } else {
+        print('Unexpected format for award data: $awardJson');
+      }
+    }
+    return items;
   }
 }
